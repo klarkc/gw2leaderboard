@@ -25,11 +25,14 @@ wget "http://mysite/leaderboard/?leaderboard=soloarena" -O /dev/null >/dev/null 
 
 FAQ
 
-1- Why the load is so slow?
+1- How access the Team or Solo leaderboard?
+Simple, put ?leaderboard=soloarena or ?leaderboard=teamarena at end of your URL.
+
+2- Why the load is so slow?
 For each registered player the server needs look for this player on all 40 ANet pages, because we still don't have an API.
 After the first update, the database records last page where the player has been found, so the next time will be faster.
 
-2- Why just not search all pages every X hours instead of this hard coded search algorithm?
+3- Why just not search all pages every X hours instead of this hard coded search algorithm?
 After some research, I decided this way is faster, because we not have so much players to search, plus the ANet server have an DDOS protection, and you will get an 500 error if get all pages in a little time.
 
 Any other question? Fell free to mail me at walker@praiseweb.com.br
