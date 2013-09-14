@@ -1,0 +1,25 @@
+/*Maindata*/
+.main-data { padding-bottom: 38px; }
+
+/*Table*/
+table { font-size: 10pt; }
+table.lb.real.soloarena { table-layout: auto; }
+.lb .before-arrow:before, .lb .after-arrow:after { height: 4px; }
+.lb .number { width: 70px; }
+
+/*Rank Cell*/
+th.rank { background-repeat: no-repeat; background-position: 5px 3px; }
+th.rank.brasil { background-image: url(../images/Braflag.png); }
+th.rank.arena { background-image: url(../images/Arena.png); }
+td.rank.brasil .cell-inner {font-weight: bold;}
+td.rank.brasil .medal-1 {background-repeat: no-repeat;background-image: url(../images/trofeus.png);position: absolute;width: 21px;height: 17px;background-size: 100%;left: 23px;}
+td.rank.brasil .medal-2 {background-repeat: no-repeat;background-image: url(../images/trofeus.png);position: absolute;width: 21px;height: 17px;background-size: 100%;left: 23px;background-position: 0 -18px;}
+td.rank.brasil .medal-3 {background-repeat: no-repeat;background-image: url(../images/trofeus.png);position: absolute;width: 21px;height: 17px;background-size: 100%;left: 23px;background-position: 0 -37px;}
+
+/* Notes */
+.notes {text-align: left;font-size: 10pt;color: rgb(182, 182, 182); background: black;}
+
+/* Form */
+.form_container{color:white;background:black;text-align:right;}
+.form_container h3{font-weight: bold;font-size:12pt;display:inline;}
+#newPlayer{margin:0;}
