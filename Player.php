@@ -1,9 +1,4 @@
 <?
-/**
-/* @author Walker Gusmão - walker@praiseweb.com.br
-/* @license http://www.opensource.org/licenses/gpl-license.php GPL v2.0 (or later)
-*/
-
 class Player {
 	public  $id;
 	public  $brasil_rank;
@@ -20,6 +15,7 @@ class Player {
 	public  $losses_since;
 	public  $winpct;
 	public  $guild;
+	public  $team;
 	public  $world;
 	public  $last_update;
 }

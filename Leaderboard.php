@@ -1,15 +1,10 @@
 <?
-/**
-/* @author Walker Gusmão - walker@praiseweb.com.br
-/* @license http://www.opensource.org/licenses/gpl-license.php GPL v2.0 (or later)
-*/
-
 class Leaderboard extends Database {
 	private $mode;
 
 	/**
-	* Clear variable from strange characters
-	*/
+	/* Clear variable from strange characters
+	**/
 	private function clear($var){
 		$var = html_entity_decode($var);
 		$var = preg_replace('/(\s)+/', ' ', trim($var));
@@ -17,20 +12,14 @@ class Leaderboard extends Database {
 		return $var;
 	}
 
-	/**
-	* Set mode of the leaderboard
-	*/
 	public function setMode($mode='soloarena'){$this->mode = $mode;}
-
-	/**
-	* Get mode of the leaderboard
-	*/
+	
 	public function getMode(){ return $this->mode;}
 
 	/**
 	/* Binary search page for a player
 	/* Returns TRUE if a player has found and updated, otherwise FALSE
-	*/
+	**/
 	private function findPage($player){
 		$player->last_page = (int) $player->last_page;
 		if ($player->last_page>0){
@@ -69,19 +58,20 @@ class Leaderboard extends Database {
 
 	/**
 	/* Return player by name
-	*/
-	public function getPlayer($name) {
-		$sql = "SELECT * FROM ".$this->mode." WHERE `name` = ? LIMIT 1";
-        	$sel = self::db()->prepare( $sql );
-	        $sel->execute($name);
-	        $sel->setFetchMode( PDO::FETCH_OBJ );
+	**/
+	public function getPlayer($name) {	
+		$sql = "SELECT * FROM ".$this->mode." WHERE `name` = ? LIMIT 1";;
+	        $sel = self::db()->prepare( $sql );
+		$sel->bindParam(1, $name, PDO::PARAM_STR);
+	        $sel->execute();
+	        $sel->setFetchMode( PDO::FETCH_CLASS , "stdClass");
 	        $obj = $sel->fetch();
 		return $obj;
 	}
 	
 	/**
 	/* Return count of records
-	*/
+	**/
 	public function count(){
 		$sql = "SELECT count(*) FROM ".$this->mode."";
 	        $sel = self::db()->prepare( $sql );
@@ -93,7 +83,7 @@ class Leaderboard extends Database {
 
 	/**
 	/* Return all players (with pagination)
-	*/
+	**/
 	public function getAllPlayers($limit,$offset, $limbo = false){
 		$sql = "SELECT * FROM ".$this->mode;
 		if(!$limbo) $sql .= " WHERE `rank` < 1000";
@@ -109,8 +99,11 @@ class Leaderboard extends Database {
 
 	/**
 	/* Update data for an specific player
-	*/
+	**/
 	public function updatePlayer($player){
+	
+		if(!$player->rank) $player->rank = 1000;
+
 		$sql = "UPDATE `".$this->mode."` SET ";
 		$sql .= "`rank`=:rank, ";
 		$sql .= "`rank_status`=:rank_status, ";
@@ -125,10 +118,11 @@ class Leaderboard extends Database {
 		$sql .= "`losses_since`=:losses_since, ";
 		$sql .= "`winpct`=:winpct, ";
 		$sql .= "`guild`=:guild, ";
+		$sql .= "`team`=:team, ";
 		$sql .= "`world`=:world, ";
 		$sql .= "`last_update`=NOW(), ";
 		$sql .= "`last_page`=:last_page";
-		$sql .= " WHERE `id`=:id";
+		$sql .= " WHERE `id`=:id";	
 		
 	        $sel = self::db()->prepare( $sql );
 		$sel->bindParam(":rank", $player->rank, PDO::PARAM_INT);
@@ -144,6 +138,7 @@ class Leaderboard extends Database {
 		$sel->bindParam(":losses_since", $player->losses_since, PDO::PARAM_STR);
 		$sel->bindParam(":winpct", $player->winpct, PDO::PARAM_STR);
 		$sel->bindParam(":guild", $player->guild, PDO::PARAM_STR);
+		$sel->bindParam(":team", $player->team, PDO::PARAM_STR);
 		$sel->bindParam(":world", $player->world, PDO::PARAM_STR);
 		$sel->bindParam(":last_page", $player->last_page, PDO::PARAM_INT);
 		$sel->bindParam(":id", $player->id, PDO::PARAM_INT);
@@ -153,15 +148,16 @@ class Leaderboard extends Database {
 
 	/**
 	/* Insert data for an new player
-	*/
+	**/
 	public function insertPlayer($player){
-		$sql = "INSERT INTO `".$this->mode."` (rank,name,guild,last_update) VALUES ";
-		$sql .= "(:rank,:name,:guild,NOW())";
+		$sql = "INSERT INTO `".$this->mode."` (rank,name,guild,team,last_update) VALUES ";
+		$sql .= "(:rank,:name,:guild,:team,NOW())";
 	        $sel = self::db()->prepare( $sql );
 		$rank=1000;
 		$sel->bindParam(":rank", $rank, PDO::PARAM_INT);
 		$sel->bindParam(":name", $player->name, PDO::PARAM_STR);
 		$sel->bindParam(":guild", $player->guild, PDO::PARAM_STR);
+		$sel->bindParam(":team", $player->team, PDO::PARAM_STR);
 	        $return = $sel->execute();
 
 		//After the insert, update Player and check if are in rank, otherwise stay on the limbo (1000+ players)
@@ -174,10 +170,10 @@ class Leaderboard extends Database {
 	}
 
 	/**
-	* Check if player exists in an leaderboard table and update if true.
-	* Return: True if player has found, False otherwise
-	*/
-	private function searchAndUpdate($player){
+	/* Check if player exists in an leaderboard table and update if true.
+	/* Return: True if player has found, False otherwise
+	**/
+	public function searchAndUpdate($player){
 		if($player->last_page<1||$player->last_page>ANET_PAGES) return false;
 		//Load nextPage from anet servers
 		$html = file_get_html(ANET_URL."&page=".$player->last_page);
@@ -217,6 +213,8 @@ class Leaderboard extends Database {
 					$p->winpct = $this->clear($line->find('td.winpct',0)->plaintext);
 					#Guild
 					$p->guild = ucwords($this->clear($player->guild));
+					#Team
+					$p->team = $player->team;
 					#World
 					$p->world = $this->clear($line->find('td.world',0)->plaintext);
 					#Last Update
@@ -237,9 +235,9 @@ class Leaderboard extends Database {
 	}
 	
 	/**
-	* Update The oldest $count players oldest then $time in seconds between firstrank and lastrank
-	* Return TRUE if at last player has be analysed, FALSE otherwise.
-	*/
+	** Update The oldest $count players oldest then $time in seconds between firstrank and lastrank
+	** Return TRUE if at last player has be analysed, FALSE otherwise.
+	**/
 	public function updatePlayers($count, $time = 0, $firstrank = 1, $lastrank = 1000){
 		$sql = 	"SELECT * FROM ".$this->mode;
 		$sql .= " WHERE `last_update` < (NOW() - INTERVAL ? SECOND)";
@@ -257,11 +255,18 @@ class Leaderboard extends Database {
 		//var_dump($obj); echo "<br>";
 		foreach($obj as $player){
 			$found = $this->findPage($player);
-			//Update last_update
-			if(!$found) $this->updatePlayer($player);
-			//echo "<p><strong>Dados na arena net foram encontrados para jogador ".$player->name."? ".($found==true?"Sim":"Not")."</strong></p>";
-			//var_dump($player);
+			//Update player if not found
+			if(!$found){
+				//Remove player from leaderboard
+				$player->last_page = 0;
+				$player->rank = 1000;
+				//So update the data in DB
+				$this->updatePlayer($player);
+			}
+			echo "<p><strong>Dados na arena net foram encontrados para jogador ".$player->name."? ".($found==true?"Sim":"Not")."</strong></p>";
+			var_dump($player);
 		}
 		return (sizeof($obj)>0)?true:false;
 	}
+	
 }

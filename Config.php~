@@ -77,5 +77,6 @@ function setCaptcha($ses_name) {
 }
 
 //Other
+define("SPREADSHEET","http://docs.google.com/spreadsheet/pub?key=0AkDdt2PANlSYdGt3b21RcmdEVnBkLURBX1EzdVY0R2c&single=true&gid=0&output=csv");
 define("ANET_PAGES",40);
 define("ANET_URL","https://leaderboards.guildwars2.com/en/na/$mode?pajax=1");

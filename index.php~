@@ -6,7 +6,32 @@
 */
 
 include "Config.php";
+/*
+//Defaults: Update 1 of top 100 players more old then 20 min
+$found = $leaderboard->updatePlayers(1, 1200, 1, 100);
+//Update one player between 100 and 200 more old then 30 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 1800, 100, 200);
+//Update one player between 200 and 300 more old then 35 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 2100, 200, 300);
+//Update one player between 300 and 400 more old then 40 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 2400, 300, 400);
+//Update one player between 400 and 500 more old then 45 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 2700, 400, 500);
+//Update one player between 500 and 600 more old then 50 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 3000, 400, 500);
+//Update one player between 600 and 700 more old then 55 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 3300, 400, 500);
+//Update one player between 700 and 800 more old then 60 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 3600, 400, 500);
+//Update one player between 800 and 900 more old then 65 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 3900, 400, 500);
+//Update one player between 900 and 999 more old then 70 min
+if(!$found) $found = $leaderboard->updatePlayers(1, 4200, 400, 999);
+//Update one player between 999 and 1000 more old then 24 hours
+if(!$found) $found = $leaderboard->updatePlayers(1, 86400, 999, 1000);
+*/
 //Data
+//$data = $leaderboard->getAllPlayers($pagination->limit,$pagination->offset);
 $data = $leaderboard->getAllPlayers(100,0);
 //Captcha
 $nrs = setCaptcha('captcha');

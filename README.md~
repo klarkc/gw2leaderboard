@@ -15,7 +15,7 @@ This software needs to be hosted in a server with Mysql And PHP 5.3+ server.
 
 Installation Instructions:
 
-1- Place all files on you server and configure "Config.php" file.
+1- Place all files on you server
 2- Import to your mysql server the SQL files.
 3- Setup an cronjob (if you want) for both leaderboards, solo and team, because we need keep the data upgraded:
 

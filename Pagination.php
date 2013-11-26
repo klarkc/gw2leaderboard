@@ -1,10 +1,4 @@
 <?php
-
-/**
-/* @author Walker Gusmão - walker@praiseweb.com.br
-/* @license http://www.opensource.org/licenses/gpl-license.php GPL v2.0 (or later)
-*/
-
 /*
  * Example usage
  * $Pagination = new Pagination();
