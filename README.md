@@ -18,7 +18,7 @@ Installation Instructions:
 2- Import to your mysql server the SQL files.
 3- Setup an cronjob (if you want), because we need keep the data upgraded:
 
-wget -q "http://guildwars2brasil.com.br/leaderboards/update.php" -O /dev/null
+wget -q "http://APPURL/update.php" -O /dev/null
 
 4- Access your URL (index.php) and let the players sign-up!
 
