@@ -8,7 +8,7 @@ Fell free to fork or help-me with this project. It's from community for communit
 
 An live production example can be accessed here:
 
-Guild Wars 2 Brazil Community Leaderboard http://guildwars2brasil.com.br/leaderboards
+Guild Wars 2 Brazil Community Leaderboard http://guildwars2brasil.com.br/leaderboard
 
 This software needs to be hosted in a server with Mysql And PHP 5.4+ server.
 
