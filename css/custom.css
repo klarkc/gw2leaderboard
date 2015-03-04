@@ -3,7 +3,8 @@
 
 /*Table*/
 table { font-size: 10pt; }
-table.lb.real.soloarena { table-layout: auto; }
+table.lb.real { table-layout: auto; }
+table.lb.real thead {display: table-header-group; }
 .lb .before-arrow:before, .lb .after-arrow:after { height: 4px; }
 .lb .number { width: 70px; }
 
@@ -15,6 +16,11 @@ td.rank.brasil .cell-inner {font-weight: bold;}
 td.rank.brasil .medal-1 {background-repeat: no-repeat;background-image: url(../images/trofeus.png);position: absolute;width: 21px;height: 17px;background-size: 100%;left: 23px;}
 td.rank.brasil .medal-2 {background-repeat: no-repeat;background-image: url(../images/trofeus.png);position: absolute;width: 21px;height: 17px;background-size: 100%;left: 23px;background-position: 0 -18px;}
 td.rank.brasil .medal-3 {background-repeat: no-repeat;background-image: url(../images/trofeus.png);position: absolute;width: 21px;height: 17px;background-size: 100%;left: 23px;background-position: 0 -37px;}
+
+/*Actions Cell*/
+td.actions span {background-repeat: no-repeat; width: 16px; height: 16px; display: block; cursor: pointer;}
+td.actions span.update {background-image: url(../images/refresh-16.png);}
+td.actions span.loading {background-image: url(../images/ajax.gif); display: none;}
 
 /* Notes */
 .notes {text-align: left;font-size: 10pt;color: rgb(182, 182, 182); background: black;}

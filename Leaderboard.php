@@ -1,4 +1,6 @@
-<?
+<?php
+ini_set('display_errors', 1);
+
 class Leaderboard extends Database {
 	private $mode;
 
@@ -12,7 +14,58 @@ class Leaderboard extends Database {
 		return $var;
 	}
 
-	public function setMode($mode='soloarena'){$this->mode = $mode;}
+	/**
+	* Search for a specific player and return the updated data from a ArenaNet table
+   	**/
+	private function searchANtbl($selector, $html, $player) {
+		$lines = $html->find($selector, 0)->children(1)->find('tr');
+		foreach( $lines as $line){
+			$playername = $this->clear($line->find('td.name',0)->plaintext);
+			if(strcasecmp($playername,$player->name)==0){
+				//We found the player, so we create a temp player for future comparation
+				$p = new stdClass();
+				#Id
+				$p->id = $player->id;
+				#Rank
+				$p->rank = $this->clear($line->find('td.rank span.cell-inner',0)->plaintext);
+				$class = explode(" ",$line->find('td.rank',0)->class);
+				$p->rank_status = $class[0];
+				$p->rank_since = $this->clear($line->find('td.rank .additional',0)->plaintext);
+				#Points
+				$p->points = $this->clear($line->find('td.points span.cell-inner',0)->plaintext);
+				$class = explode(" ",$line->find('td.points',0)->class);
+				$p->points_status = $class[0];
+				$p->points_since = $this->clear($line->find('td.points .additional',0)->plaintext);
+				#Account name
+				$p->name = $this->clear($line->find('td.name',0)->plaintext);
+				#Character name
+				$p->character = $this->clear($line->find('td.charname',0)->plaintext);
+				#Wins
+				$p->wins = $this->clear($line->find('td.wins span.cell-inner',0)->plaintext);
+				$class = explode(" ",$line->find('td.wins',0)->class);
+				$p->wins_status = $class[0];
+				$p->wins_since = $this->clear($line->find('td.wins .additional',0)->plaintext);
+				#Losses
+				$p->losses = $this->clear($line->find('td.losses span.cell-inner',0)->plaintext);
+				$class = explode(" ",$line->find('td.losses',0)->class);
+				$p->losses_status = $class[0];
+				$p->losses_since = $this->clear($line->find('td.losses .additional',0)->plaintext);
+				#Win Rate
+				$p->winpct = $this->clear($line->find('td.winpct',0)->plaintext);
+				#Guild
+				$p->guild = ucwords($this->clear($player->guild));
+				#Last Update
+				$p->last_update = $player->last_update;
+				#Last Page
+				$p->last_page = $player->last_page;
+
+				return $p;
+			}
+		}
+		return false;
+	}
+
+	public function setMode($mode='pvp'){$this->mode = $mode;}
 	
 	public function getMode(){ return $this->mode;}
 
@@ -20,7 +73,7 @@ class Leaderboard extends Database {
 	/* Binary search page for a player
 	/* Returns TRUE if a player has found and updated, otherwise FALSE
 	**/
-	private function findPage($player){
+	public function findPage($player){
 		$player->last_page = (int) $player->last_page;
 		if ($player->last_page>0){
 			// Page hasn't changed at all
@@ -33,13 +86,13 @@ class Leaderboard extends Database {
 			while($goFw<=ANET_PAGES||$goBw>0){
 				if ($goFw<=ANET_PAGES){
 					$player->last_page = ++$goFw;
-					//echo "Player: ".$player->name." Searched in the next page: ".$player->last_page."<br>";
+					//echo "\nPlayer: ".$player->name." Searched in the next page: ".$player->last_page."\n<br>";
 					if ($this->searchAndUpdate($player)) return true;
 				}
 
 				if ($goBw>0){
 					$player->last_page = --$goBw;
-					//echo "Player: ".$player->name." Searched in the prev page: ".$player->last_page."<br>";
+					//echo "\nPlayer: ".$player->name." Searched in the prev page: ".$player->last_page."\n<br>";
 					if ($this->searchAndUpdate($player)) return true;
 				}
 			}
@@ -47,7 +100,7 @@ class Leaderboard extends Database {
 			// Linear walk-through (O(N))
 			for ($p=1;$p<=ANET_PAGES;$p++){
 				$player->last_page = $p;
-				//echo "Player: ".$player->name." linearly Searched in the page: ".$player->last_page."<br>";
+				//echo "\nPlayer: ".$player->name." linearly Searched in the page: ".$player->last_page."\n<br>";
 				if ($this->searchAndUpdate($player)) return true;
 			}
 		}
@@ -94,6 +147,18 @@ class Leaderboard extends Database {
 	        $sel->execute();
 	        $sel->setFetchMode( PDO::FETCH_CLASS , "stdClass");
 	        $obj = $sel->fetchAll();
+		// Calculate (and save) rank_br if needed
+		foreach($obj as $key => &$player){
+			if(!empty($player->rank_br)){
+				if($player->rank_br != $key+1){
+					$player->rank_br = $key+1;
+					$this->updatePlayer($player);
+				}
+			} else {
+				$player->rank_br = $key+1;
+				$this->updatePlayer($player);
+			}
+		}
 		return $obj;
 	}
 
@@ -106,8 +171,12 @@ class Leaderboard extends Database {
 
 		$sql = "UPDATE `".$this->mode."` SET ";
 		$sql .= "`rank`=:rank, ";
+		$sql .= "`rank_br`=:rank_br, ";
 		$sql .= "`rank_status`=:rank_status, ";
 		$sql .= "`rank_since`=:rank_since, ";
+		$sql .= "`points`=:points, ";
+		$sql .= "`points_status`=:points_status, ";
+		$sql .= "`points_since`=:points_since, ";
 		$sql .= "`name`=:name, ";
 		$sql .= "`character`=:character, ";
 		$sql .= "`wins`=:wins, ";
@@ -118,16 +187,20 @@ class Leaderboard extends Database {
 		$sql .= "`losses_since`=:losses_since, ";
 		$sql .= "`winpct`=:winpct, ";
 		$sql .= "`guild`=:guild, ";
-		$sql .= "`team`=:team, ";
-		$sql .= "`world`=:world, ";
-		$sql .= "`last_update`=NOW(), ";
+		$sql .= "`last_update`=NOW(), "; // FIXME: Isso está mostrando atualização quando não deveria (mudança de rank_br por exemplo)
 		$sql .= "`last_page`=:last_page";
 		$sql .= " WHERE `id`=:id";	
 		
+		if(empty($player->rank_br)) $player->rank_br = NULL;
+
 	        $sel = self::db()->prepare( $sql );
 		$sel->bindParam(":rank", $player->rank, PDO::PARAM_INT);
+		$sel->bindParam(":rank_br", $player->rank_br, PDO::PARAM_INT);
 		$sel->bindParam(":rank_status", $player->rank_status, PDO::PARAM_STR);
 		$sel->bindParam(":rank_since", $player->rank_since, PDO::PARAM_STR);
+		$sel->bindParam(":points", $player->points, PDO::PARAM_INT);
+		$sel->bindParam(":points_status", $player->points_status, PDO::PARAM_STR);
+		$sel->bindParam(":points_since", $player->points_since, PDO::PARAM_STR);
 		$sel->bindParam(":name", $player->name, PDO::PARAM_STR);
 		$sel->bindParam(":character", $player->character, PDO::PARAM_STR);
 		$sel->bindParam(":wins", $player->wins, PDO::PARAM_INT);
@@ -138,8 +211,6 @@ class Leaderboard extends Database {
 		$sel->bindParam(":losses_since", $player->losses_since, PDO::PARAM_STR);
 		$sel->bindParam(":winpct", $player->winpct, PDO::PARAM_STR);
 		$sel->bindParam(":guild", $player->guild, PDO::PARAM_STR);
-		$sel->bindParam(":team", $player->team, PDO::PARAM_STR);
-		$sel->bindParam(":world", $player->world, PDO::PARAM_STR);
 		$sel->bindParam(":last_page", $player->last_page, PDO::PARAM_INT);
 		$sel->bindParam(":id", $player->id, PDO::PARAM_INT);
 		//var_dump($player);
@@ -150,14 +221,13 @@ class Leaderboard extends Database {
 	/* Insert data for an new player
 	**/
 	public function insertPlayer($player){
-		$sql = "INSERT INTO `".$this->mode."` (rank,name,guild,team,last_update) VALUES ";
-		$sql .= "(:rank,:name,:guild,:team,NOW())";
+		$sql = "INSERT INTO `".$this->mode."` (rank,name,guild,last_update) VALUES ";
+		$sql .= "(:rank,:name,:guild,NOW())";
 	        $sel = self::db()->prepare( $sql );
 		$rank=1000;
 		$sel->bindParam(":rank", $rank, PDO::PARAM_INT);
 		$sel->bindParam(":name", $player->name, PDO::PARAM_STR);
 		$sel->bindParam(":guild", $player->guild, PDO::PARAM_STR);
-		$sel->bindParam(":team", $player->team, PDO::PARAM_STR);
 	        $return = $sel->execute();
 
 		//After the insert, update Player and check if are in rank, otherwise stay on the limbo (1000+ players)
@@ -168,6 +238,7 @@ class Leaderboard extends Database {
 		
 		return $return;
 	}
+
 
 	/**
 	/* Check if player exists in an leaderboard table and update if true.
@@ -180,55 +251,26 @@ class Leaderboard extends Database {
 		if(!method_exists($html,'find')){
 			return false;
 		} else {
-			$dom = $html->find('#mainData .table-wrapper .real tbody tr');
 			$found=false;
-			//For each line into the table, look for the player
-			foreach( $dom as $line){
-				$playername = $this->clear($line->find('td.name',0)->plaintext);
-				if(strcasecmp($playername,$player->name)==0){
-					//We found the player, so we create a temp player for future comparation
-					$p = new stdClass();
-					#Id
-					$p->id = $player->id;
-					#Rank
-					$p->rank = $this->clear($line->find('td.rank span.cell-inner',0)->plaintext);
-					$class = explode(" ",$line->find('td.rank',0)->class);
-					$p->rank_status = $class[0];
-					$p->rank_since = $this->clear($line->find('td.rank .additional',0)->plaintext);
-					#Account name
-					$p->name = $this->clear($line->find('td.name',0)->plaintext);
-					#Character name
-					$p->character = $this->clear($line->find('td.charname',0)->plaintext);
-					#Wins
-					$p->wins = $this->clear($line->find('td.wins span.cell-inner',0)->plaintext);
-					$class = explode(" ",$line->find('td.wins',0)->class);
-					$p->wins_status = $class[0];
-					$p->wins_since = $this->clear($line->find('td.wins .additional',0)->plaintext);
-					#Losses
-					$p->losses = $this->clear($line->find('td.losses span.cell-inner',0)->plaintext);
-					$class = explode(" ",$line->find('td.losses',0)->class);
-					$p->losses_status = $class[0];
-					$p->losses_since = $this->clear($line->find('td.losses .additional',0)->plaintext);
-					#Win Rate
-					$p->winpct = $this->clear($line->find('td.winpct',0)->plaintext);
-					#Guild
-					$p->guild = ucwords($this->clear($player->guild));
-					#Team
-					$p->team = $player->team;
-					#World
-					$p->world = $this->clear($line->find('td.world',0)->plaintext);
-					#Last Update
-					$p->last_update = $player->last_update;
-					#Last Page
-					$p->last_page = $player->last_page;
-	
-					$this->updatePlayer($p);
-	
-					//The player has been found
+
+			//Check first TOP 3
+			$player1 = $this->searchANtbl('#mainData table.fake', $html, $player);
+			if($player1) {
+				//echo "\nPlayer encontrado na primeira tabela";
+				$found = true;
+				$this->updatePlayer($player1);
+			} else {
+				unset($player1);
+				//Check the others
+				$player2 = $this->searchANtbl('#mainData table.real', $html, $player);
+				if($player2) {
+					//echo "\nPlayer encontrado na segunda tabela";
 					$found = true;
-				} 
+					$this->updatePlayer($player2);
+				}
+				unset($player2);
 			}
-			unset($dom);
+
 		}
 		$html->clear();
 		return $found;
@@ -260,6 +302,7 @@ class Leaderboard extends Database {
 				//Remove player from leaderboard
 				$player->last_page = 0;
 				$player->rank = 1000;
+				$player->rank_br = NULL;
 				//So update the data in DB
 				$this->updatePlayer($player);
 			}

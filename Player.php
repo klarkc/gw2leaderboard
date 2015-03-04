@@ -1,10 +1,14 @@
-<?
+<?php
 class Player {
 	public  $id;
 	public  $brasil_rank;
 	public  $rank;
+	public  $rank_br;
 	public  $rank_status;
 	public  $rank_since;
+	public  $points;
+	public  $points_status;
+	public  $points_since;
 	public  $name;
 	public  $character;
 	public  $wins;
@@ -15,7 +19,5 @@ class Player {
 	public  $losses_since;
 	public  $winpct;
 	public  $guild;
-	public  $team;
-	public  $world;
 	public  $last_update;
 }

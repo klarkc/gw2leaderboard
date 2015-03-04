@@ -15,22 +15,20 @@ function execute(){
 	$player = new Player();
 	$player->name = $_POST['name'];
 	$player->guild = $_POST['guild'];
-	$player->team = $_POST['team'];
 	if(!$player->name || $player->name=="MeuNick.1234" || $player->name=="") {
 		echo "alert('Você precisa preencher o campo ID do Jogador');\n";
 	} else {
 		if($player->guild=="Minha Guilda Sem Tag") $player->guild=NULL;
-		if($player->team=="[TAG] Minha Guilda") $player->team=NULL;
 		//TODO: RegExp e validação dos campos acima
 		try{
 			if(validate($player)){
 				echo "/*"; //Fix javascript + php errors output commenting them
 				if(!$leaderboard->insertPlayer($player)){
 					echo "*/";
-					echo "alert('Ups, erro desconhecido ao cadastrar jogador. Comunique ao administrador!');\n";
+					echo "alert('Ups, erro desconhecido ao cadastrar jogador. O servidor pode estar sobrecarregado - tente novamente mais tarde. Se ainda assim não conseguir, entre em contato conosco na página de contato informando os seus dados.');\n";
 				} else {
 					echo "*/";
-					echo "alert('Jogador cadastrado com sucesso!');\n";
+					echo "alert('Jogador cadastrado com sucesso! Se não aparecer na tabela, infelizmente você não está entre os 999 primeiros.');\n";
 					echo "location.reload();";
 				}
 			}
@@ -39,19 +37,29 @@ function execute(){
 			echo "*/";
 			switch($e->errorInfo[0]){
 				case "23000":
+					echo "/*"; //Fix javascript + php errors output commenting them
 					//Update Player
 					$player = $leaderboard->getPlayer($player->name);
 					if($_POST['guild']) $player->guild = $_POST['guild'];
-					if($_POST['team']) $player->team = $_POST['team'];
-					if($leaderboard->updatePlayer($player)){
+					$found = $leaderboard->findPage($player);
+					if($found){
+						// Player in ArenaNet Leaderboard (found in pages)
+						echo "*/";
 						echo "alert('* Você já se encontra cadastrado, seu cadastro foi atualizado.');\n";
 					} else {
-						echo "alert('* Você já se encontra cadastrado, porém não foi possível atualizar os seus dados, entre em contato com o administrador.');\n";
+						// Player not found in ArenaNet Leaderboard (not found in pages)
+						if($leaderboard->updatePlayer($player)){
+							echo "*/";
+							echo "alert('* O seu cadastro foi atualizado, mas você não se encontra entre os 1000 primeiros, nós vamos ficar monitorando a sua posição.');\n";
+						} else {
+							echo "*/";
+							echo "alert('* Você já se encontra cadastrado, porém não foi possível atualizar os seus dados. O servidor pode estar sobrecarregado - tente novamente mais tarde. Se ainda assim não conseguir, entre em contato conosco na página de contato informando os seus dados.');\n";
+						}
 					}
 					echo "location.reload();";
 				break;
 				default:
-					echo "alert('Ups, erro desconhecido ao cadastrar jogador. Comunique ao administrador!');\n";
+					echo "alert('Ups, o servidor parece estar sobrecarregado. Tente novamente mais tarde, e se não conseguir entre em contato conosco na página de contato informando os seus dados!');\n";
 				break;
 			}
 		}

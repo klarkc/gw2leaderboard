@@ -8,34 +8,33 @@ Fell free to fork or help-me with this project. It's from community for communit
 
 An live production example can be accessed here:
 
-Guild Wars 2 Brasil solo leaderboard http://guildwars2brasil.com.br/leaderboard
-Guild Wars 2 Brasil team leaderboard: http://guildwars2brasil.com.br/leaderboard/?leaderboard=teamarena
+Guild Wars 2 Brazil Community Leaderboard http://guildwars2brasil.com.br/leaderboards
 
-This software needs to be hosted in a server with Mysql And PHP 5.3+ server.
+This software needs to be hosted in a server with Mysql And PHP 5.4+ server.
 
 Installation Instructions:
 
 1- Place all files on you server and configure "Config.php" file.
 2- Import to your mysql server the SQL files.
-3- Setup an cronjob (if you want) for both leaderboards, solo and team, because we need keep the data upgraded:
+3- Setup an cronjob (if you want), because we need keep the data upgraded:
 
-wget "http://mysite/leaderboard/update.php?leaderboard=teamarena" -O /dev/null >/dev/null 2>&1; wget "http://mysite/leaderboard/update.php?leaderboard=soloarena" -O /dev/null >/dev/null 2>&1
+wget -q "http://guildwars2brasil.com.br/leaderboards/update.php" -O /dev/null
 
-4- Access your URL and let the players sign-up!
+4- Access your URL (index.php) and let the players sign-up!
 
 FAQ
 
-1- How access the Team or Solo leaderboard?
-Simple, put ?leaderboard=soloarena or ?leaderboard=teamarena at end of your URL.
-
-2- Why the load is so slow?
+1- Why the load is so slow?
 For each registered player the server needs look for this player on all 40 ANet pages, because we still don't have an API.
 After the first update, the database records last page where the player has been found, so the next time will be faster.
 
-3- Why just not search all pages every X hours instead of this hard coded search algorithm?
+2- Why just not search all pages every X hours instead of this hard coded search algorithm?
 After some research, I decided this way is faster, because we not have so much players to search, plus the ANet server have an DDOS protection, and you will get an 500 error if get all pages in a little time.
 
-4- There is a way to debug?
+3- There is a way to debug?
 Yep! Just put the debug param at end of your URL, like this "?debug=true"
+
+4- Translate?
+I am not using any system to translate the app, for while you can manually change the strings directly in the code, files: index.php, Leaderboard.php, newplayer.php
 
 Any other question? Fell free to mail me: walker at praiseweb.com.br

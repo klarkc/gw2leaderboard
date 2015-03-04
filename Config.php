@@ -1,4 +1,4 @@
-<?
+<?php
 
 include "Database.php";
 include "Pagination.php";
@@ -17,26 +17,35 @@ ini_set('default_charset', 'utf-8');
 //$cache = phpFastCache();
 
 //Admin
-$admin = "45y347356745heyu5e5e6ejh";
+// Set a MD5 encoded password below (just for utilities)
+$admin = "HACKME";
 $admin=($admin == md5($_GET['passwd']))?true:false;
 
 //Params
+// This param is used to debug the code
 $debug = ($_GET['debug'])?true:false;
 if($debug) {error_reporting(E_ALL);}
-$mode = (isset($_GET['leaderboard']))?htmlentities($_GET['leaderboard']):"soloarena";
-$mode = (isset($_POST['leaderboard']))?$_POST['leaderboard']:$mode;
-if($mode != "teamarena") $mode = "soloarena";
+
+// A long time ago, AN was using splited leaderboard (solo and team), and now it's gone
+$mode = "pvp";
 
 //Database
+// Configure your database settings below
 define("DBTYPE","mysql");
 define("DBHOST","localhost");
-define("DBNAME","leaderboard");
-define("DBUSER","user");
-define("DBPASS","hackme");
+define("DBNAME","gw2br_leaderboard");
+define("DBUSER","gw2br");
+define("DBPASS","HACKME");
 $leaderboard = Leaderboard::getInstance();
 $leaderboard->setMode($mode);
 
-//Pagination
+//Other (change this only when AN changes leaderboard code)
+define("ANET_PAGES",40);
+define("ANET_URL","https://leaderboards.guildwars2.com/en/na/$mode?pajax=1");
+
+// DO NOT CHANGE THE SETTINGS BELOW
+
+//Pagination, (pagination is not working yet)
  /*** set the page name ***/
  $page_name = htmlentities($_SERVER['PHP_SELF']);
  /*** set the number of results per page ***/
@@ -75,7 +84,3 @@ function setCaptcha($ses_name) {
 
   return $nrs;        // returns the array with the numbers
 }
-
-//Other
-define("ANET_PAGES",40);
-define("ANET_URL","https://leaderboards.guildwars2.com/en/na/$mode?pajax=1");
